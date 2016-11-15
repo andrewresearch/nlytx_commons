@@ -1,4 +1,4 @@
-package io.nlytx.commons.tfidf
+package io.nlytx.commons.ranking
 
 import io.nlytx.commons.UnitSpec
 
@@ -13,13 +13,13 @@ class TfIdfSpec extends UnitSpec {
   val rtf = TfIdf.rawTermFrequency(text)
   val wtf = TfIdf.weightedTermFrequency(text)
 
-  val texts = List("Document one is document","This is document two is three","three three document","and this is document three four")
+  val texts = List("Document one is document","This is document two is three","three three document","  this is \t document\n  \n three four")
   val dtc = texts.map(TfIdf.rawTermFrequency)
   val tdc = TfIdf.termDocCounts(dtc)
   val idf = TfIdf.inverseDocFrequency(tdc,4)
 
-  //val tfidf = texts.map(t => TfIdf.tfIdf(TfIdf.weightedTermFrequency(t),idf))
-  val tfidf = TfIdf.calculate(texts)
+  //val ranking = texts.map(t => TfIdf.tfIdf(TfIdf.weightedTermFrequency(t),idf))
+  val tfidf = TfIdf.calculateWeighted(texts, true, 1.0)
   val ranked = TfIdf.rankedTerms(texts)
 
   "rawTermFrequency" should "result in an accurate count of words in a string" in {
@@ -42,14 +42,6 @@ class TfIdfSpec extends UnitSpec {
     assert(rtf.getOrElse("t",0L)==1L)
     assert(rtf.getOrElse("end",0L)==1L)
   }
-
-//  "maxTermFrequency" should "return the maximum count of all rawTermFrequencies" in {
-//    assert(max==3L)
-//  }
-//
-//  "weightedTerm" should "return an accurate weighted rating based on a count and a max" in {
-//    assert(TfIdf.weightedTerm("test",1,4)._2==0.625)
-//  }
 
   "weightedTermFrequency" should "produce correct weightings" in {
     wtf.size should equal (17)
@@ -74,14 +66,14 @@ class TfIdfSpec extends UnitSpec {
   }
 
   "termDocumentCounts" should "produce correct document counts" in {
-    tdc.size should equal (8)
+    tdc.size should equal (7)
     tdc.getOrElse("document",0) should equal (5)
     tdc.getOrElse("one",0) should equal (1)
     tdc.getOrElse("this",0) should equal (2)
     tdc.getOrElse("is",0) should equal (4)
     tdc.getOrElse("two",0) should equal (1)
     tdc.getOrElse("three",0) should equal (4)
-    tdc.getOrElse("and",0) should equal (1)
+    tdc.getOrElse("and",0) should equal (0)
     tdc.getOrElse("four",0) should equal (1)
   }
 
@@ -92,12 +84,12 @@ class TfIdfSpec extends UnitSpec {
     idf.getOrElse("is",0) should equal (0.6931471805599453)
     idf.getOrElse("two",0) should equal (1.6094379124341003)
     idf.getOrElse("three",0) should equal (0.6931471805599453)
-    idf.getOrElse("and",0) should equal (1.6094379124341003)
+    idf.getOrElse("and",0) should equal (0.0)
     idf.getOrElse("four",0) should equal (1.6094379124341003)
   }
 
   // "Document one is document"
-  "document 1 tfIdf" should "produce correct tfidf values" in {
+  "document 1 tfIdf" should "produce correct ranking values" in {
     tfidf(0).getOrElse("document",0.0) should equal (0.0)
     tfidf(0).getOrElse("one",0) should equal (1.2070784343255752)
     tfidf(0).getOrElse("this",0) should equal (0.0)
@@ -109,7 +101,7 @@ class TfIdfSpec extends UnitSpec {
   }
 
   // "This is document two is three"
-  "document 2 tfIdf" should "produce correct tfidf values" in {
+  "document 2 tfIdf" should "produce correct ranking values" in {
     tfidf(1).getOrElse("document",0.0) should equal (0.0)
     tfidf(1).getOrElse("one",0) should equal (0.0)
     tfidf(1).getOrElse("this",0) should equal (0.8239592165010822)
@@ -121,7 +113,7 @@ class TfIdfSpec extends UnitSpec {
   }
 
   // "three three document"
-  "document 3 tfIdf" should "produce correct tfidf values" in {
+  "document 3 tfIdf" should "produce correct ranking values" in {
     tfidf(2).getOrElse("document",0.0) should equal (0.0)
     tfidf(2).getOrElse("one",0) should equal (0.0)
     tfidf(2).getOrElse("this",0) should equal (0.0)
@@ -132,15 +124,15 @@ class TfIdfSpec extends UnitSpec {
     tfidf(2).getOrElse("four",0) should equal (0.0)
   }
 
-  // "and this is document three four"
-  "document 4 tfIdf" should "produce correct tfidf values" in {
+  // "  this is \t document\n  \n three four"
+  "document 4 tfIdf" should "produce correct ranking values" in {
     tfidf(3).getOrElse("document",0.0) should equal (0.0)
     tfidf(3).getOrElse("one",0) should equal (0.0)
     tfidf(3).getOrElse("this",0) should equal (1.0986122886681096)
     tfidf(3).getOrElse("is",0) should equal (0.6931471805599453)
     tfidf(3).getOrElse("two",0) should equal (0.0)
     tfidf(3).getOrElse("three",0) should equal (0.6931471805599453)
-    tfidf(3).getOrElse("and",0) should equal (1.6094379124341003)
+    tfidf(3).getOrElse("and",0) should equal (0.0)
     tfidf(3).getOrElse("four",0) should equal (1.6094379124341003)
   }
 
@@ -148,7 +140,47 @@ class TfIdfSpec extends UnitSpec {
     ranked(0) should equal (List("one","is"))
     ranked(1) should equal (List("two", "this", "is", "three"))
     ranked(2) should equal (List("three"))
-    ranked(3) should equal (List("and", "four", "this", "three", "is"))
+    ranked(3) should equal (List("four", "this", "three", "is"))
+  }
+
+  "rankedTerms with topTake 0" should "select top one for each document" in {
+    val rank0 = TfIdf.rankedTerms(texts,0)
+    rank0(0) should equal (List("one"))
+    rank0(1) should equal (List("two"))
+    rank0(2) should equal (List("three"))
+    rank0(3) should equal (List("four"))
+  }
+
+  "rankedTerms with topTake 1.5" should "select all for each document" in {
+    val rank0 = TfIdf.rankedTerms(texts,1.5)
+    rank0(0) should equal (List("one","is"))
+    rank0(1) should equal (List("two", "this", "is", "three"))
+    rank0(2) should equal (List("three"))
+    rank0(3) should equal (List("four", "this", "three", "is"))
+  }
+
+  "rankedTerms with topTake 0.3" should "select all for each document" in {
+    val rank0 = TfIdf.rankedTerms(texts,0.3)
+    rank0(0) should equal (List("one"))
+    rank0(1) should equal (List("two"))
+    rank0(2) should equal (List("three"))
+    rank0(3) should equal (List("four"))
+  }
+
+  "rankedTerms with topTake 0.5" should "select all for each document" in {
+    val rank0 = TfIdf.rankedTerms(texts,0.5)
+    rank0(0) should equal (List("one"))
+    rank0(1) should equal (List("two","this"))
+    rank0(2) should equal (List("three"))
+    rank0(3) should equal (List("four", "this"))
+  }
+
+  "rankedTerms with topTake 0.75" should "select all for each document" in {
+    val rank0 = TfIdf.rankedTerms(texts,0.75)
+    rank0(0) should equal (List("one","is"))
+    rank0(1) should equal (List("two", "this", "is"))
+    rank0(2) should equal (List("three"))
+    rank0(3) should equal (List("four", "this", "three"))
   }
 
 }

@@ -18,3 +18,27 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
+/.idea/vcs.xml
+/.idea/workspace.xml
+.DS_Store
+.idea/.name
+.idea/encodings.xml
+.idea/inspectionProfiles/
+.idea/libraries/
+.idea/misc.xml
+.idea/modules.xml
+.idea/modules/
+.idea/reactTemplatesPlugin.xml
+.idea/sbt.xml
+.idea/scala_compiler.xml
+.idea/workspace.xml
+CommonsScratch.sc
+nlytx_commons.iml
+project/project/
+src/main/java/
+src/main/resources/
+src/main/scala-2.12/
+src/main/scala/io/nlytx/commons/clean/
+src/test/java/
+src/test/resources/
+src/test/scala-2.12/

@@ -1,5 +1,5 @@
 /** Build file for io.nlytx.commons
-  * @version 0.1.0
+  * @version 0.1.1
   */
 
 val scalaTest = Seq(
@@ -10,7 +10,7 @@ val scalaTest = Seq(
 
 lazy val commonSettings = Seq(
   organization := "io.nlytx",
-  version := "0.1.0",
+  version := "0.1.1",
   scalaVersion in ThisBuild := "2.12.0",
   exportJars := true
 )

@@ -42,3 +42,4 @@ src/main/scala/io/nlytx/commons/clean/
 src/test/java/
 src/test/resources/
 src/test/scala-2.12/
+/.idea/

@@ -1,27 +1,43 @@
-/** Build file for io.nlytx.commons
-  * @version 0.1.1
-  */
+val commonsOrg = "io.nlytx"
+val commonsName = "nlytx-nlp-commons"
+val commonsVersion = "0.3.0"
 
-val scalaTest = Seq(
-  "org.scalactic" %% "scalactic" % "3.0.0",
-  "org.scalatest" %% "scalatest" % "3.0.0" % "test"
-)
+val publish_to_BinTray = true
 
+val scalaV = "2.12.3"
 
-lazy val commonSettings = Seq(
-  organization := "io.nlytx",
-  version := "0.1.1",
-  scalaVersion in ThisBuild := "2.12.0",
-  exportJars := true
-)
+val scalatestV = "3.0.4"
 
-lazy val nlytx_commons = (project in file(".")).
-  settings(commonSettings: _*).
+lazy val nlytx_nlp_commons = (project in file(".")).
   settings(
-    name := "commons",
-    libraryDependencies ++= scalaTest
+    name := commonsName,
+    organization := commonsOrg,
+    version := commonsVersion,
+    scalaVersion := scalaV,
+    libraryDependencies ++= scalaTest,
+    publishOptions
   )
 
-scalacOptions in (Compile,doc) ++= Seq("-groups", "-implicits")
+lazy val scalaTest = Seq(
+  "org.scalactic" %% "scalactic" % scalatestV,
+  "org.scalatest" %% "scalatest" % scalatestV % "test"
+)
 
-enablePlugins(SiteScaladocPlugin)
+
+/* Publishing  */
+
+lazy val binTrayRealm = "Bintray API Realm"
+lazy val binTrayUrl = s"https://api.bintray.com/content/nlytx/nlytx-nlp/"
+lazy val binTrayCred = Credentials(Path.userHome / ".bintray" / ".credentials")
+lazy val pubLicence = ("Apache-2.0", url("https://www.apache.org/licenses/LICENSE-2.0.html"))
+lazy val commonsBinTray = Some(binTrayRealm at binTrayUrl + s"$commonsName/$commonsVersion/")
+
+lazy val publishOptions = if (publish_to_BinTray) Seq(
+  publishMavenStyle := true,
+  licenses += pubLicence,
+  credentials += binTrayCred,
+  publishTo := commonsBinTray
+)
+else Seq(
+  publishArtifact := false
+)
